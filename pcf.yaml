@@ -32,9 +32,9 @@ topology_template:
           export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
           export GO111MODULE=off
           
-          cd new-free5gc
+          cd free5gc_training
           echo "configure PCF"
-          cat > /home/ubuntu/new-free5gc/config/pcfcfg.conf <<- EOM
+          cat > /home/ubuntu/free5gc_training/config/pcfcfg.conf <<- EOM
           info:
             version: 1.0.0
             description: PCF initial local configuration

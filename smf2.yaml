@@ -33,9 +33,9 @@ topology_template:
           export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
           export GO111MODULE=off
           
-          cd new-free5gc
+          cd free5gc_training
           echo "configure SMF"
-          cat > /home/ubuntu/new-free5gc/config/smfcfg.conf <<- EOM
+          cat > /home/ubuntu/free5gc_training/config/smfcfg.conf <<- EOM
           info:
             version: 1.0.0
             description: SMF initial local configuration

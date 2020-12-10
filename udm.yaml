@@ -32,9 +32,9 @@ topology_template:
           export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
           export GO111MODULE=off
           
-          cd new-free5gc
+          cd free5gc_training
           echo "configure UDM"
-          cat > /home/ubuntu/new-free5gc/config/udmcfg.conf <<- EOM
+          cat > /home/ubuntu/free5gc_training/config/udmcfg.conf <<- EOM
           info:
             version: 1.0.0
             description: UDM initial local configuration

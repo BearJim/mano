@@ -32,9 +32,9 @@ topology_template:
           export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
           export GO111MODULE=off
           
-          cd new-free5gc
+          cd free5gc_training
           echo "configure AMF"
-          cat > /home/ubuntu/new-free5gc/config/amfcfg.conf <<- EOM
+          cat > /home/ubuntu/free5gc_training/config/amfcfg.conf <<- EOM
           info:
             version: 1.0.0
             description: AMF initial local configuration

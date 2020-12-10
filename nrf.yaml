@@ -33,9 +33,9 @@ topology_template:
           export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
           export GO111MODULE=off
           
-          cd new-free5gc
+          cd free5gc_training
           echo "configure NRF"
-          cat > /home/ubuntu/new-free5gc/config/nrfcfg.conf <<- EOM
+          cat > /home/ubuntu/free5gc_training/config/nrfcfg.conf <<- EOM
           info:
             version: 1.0.0
             description: NRF initial local configuration
