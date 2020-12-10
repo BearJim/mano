@@ -1,0 +1,122 @@
+tosca_definitions_version: tosca_simple_profile_for_nfv_1_0_0
+description: description
+node_types:
+  tosca.nodes.nfv.VNF15:
+    requirements:
+    - virtualLink1:
+        type: tosca.nodes.nfv.VL
+        required: true
+metadata:
+  template_name: free5GCSetup
+topology_template:
+  substitution_mappings:
+    node_type: tosca.nodes.nfv.VNF15
+  node_templates:
+    VDU1:
+      type: tosca.nodes.nfv.VDU.Tacker
+      properties:
+        name: free5gc-smf3-VNF
+        image: new-control
+        flavor: free5gc
+        availability_zone: nova
+        mgmt_driver: noop
+        key_name: free5gc
+        user_data_format: RAW
+        user_data: |
+          #!/bin/sh
+          cd /home/ubuntu/ 
+
+          echo "export GOPATH for bash shell"
+          export HOME=/home/ubuntu
+          export GOPATH=$HOME/go
+          export GOROOT=/usr/local/go
+          export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
+          export GO111MODULE=off
+          
+          cd new-free5gc
+          echo "configure SMF"
+          cat > /home/ubuntu/new-free5gc/config/smfcfg.conf <<- EOM
+          info:
+            version: 1.0.0
+            description: SMF initial local configuration
+
+          configuration:
+            smfName: SMF
+            sbi:
+              scheme: http
+              registerIPv4: 192.168.2.115 # IP used to register to NRF
+              bindingIPv4: 192.168.2.115  # IP used to bind the service
+              port: 29522
+              tls:
+                key: free5gc/support/TLS/smf.key
+                pem: free5gc/support/TLS/smf.pem
+            serviceNameList:
+              - nsmf-pdusession
+              - nsmf-event-exposure
+              - nsmf-oam
+            snssai_info:
+              - sNssai:
+                  sst: 3
+                  sd: 010205
+                dnnSmfInfoList:
+                  - dnn: internet3
+              - sNssai:
+                  sst: 1
+                  sd: 010203
+                dnnSmfInfoList:
+                  - dnn: internet
+            pfcp:
+              addr: 192.168.2.115
+            userplane_information:
+              up_nodes:
+                gNB1:
+                  type: AN
+                  an_ip: 192.168.2.25
+                UPF:
+                  type: UPF
+                  node_id: 192.168.2.113
+
+              links:
+                - A: gNB1
+                  B: UPF
+            ue_subnet: 60.60.0.0/16
+            dnn:
+              internet:
+                dns:
+                  ipv4: 8.8.8.8
+                  ipv6: 2001:4860:4860::8888
+              internet3:
+                dns:
+                  ipv4: 8.8.4.6
+                  ipv6: 2001:4860:4860::8846
+            nrfUri: http://192.168.2.101:29510
+          EOM
+          
+          #echo "initialize SMF"
+          #go build -o bin/smf -x src/smf/smf.go
+          
+          #echo "run SMF"
+          #sudo ./bin/smf
+    CP1:
+      type: tosca.nodes.nfv.CP.Tacker
+      properties:
+        ip_address: 192.168.2.115
+        management: true
+      requirements:
+      - virtualLink:
+          node: VL1
+      - virtualBinding:
+          node: VDU1
+    VL1:
+      type: tosca.nodes.nfv.VL
+      properties:
+        network_name: 5GC
+        vendor: Tacker
+    FIP1:
+      type: tosca.nodes.network.FloatingIP
+      properties:
+        floating_network: public
+        floating_ip_address: 172.24.4.115
+      requirements:
+      - link:
+          node: CP1
