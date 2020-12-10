@@ -3,12 +3,12 @@
 openstack vnf create --vnfd-name mongo mongo --vim-name chris_vim --description "mongodb"
 #openstack vnf create --vnfd-name upf upf --vim-name chris_vim --description "upf"
 openstack vnf create --vnfd-name upf1 upf1 --vim-name chris_vim --description "upf1"
-sleep 5
-openstack vnf create --vnfd-name upf2 upf2 --vim-name chris_vim --description "upf2"
-sleep 5
-openstack vnf create --vnfd-name upf3 upf3 --vim-name chris_vim --description "upf3"
-sleep 5
-openstack vnf create --vnfd-name upf4 upf4 --vim-name chris_vim --description "upf4"
+#sleep 5
+#openstack vnf create --vnfd-name upf2 upf2 --vim-name chris_vim --description "upf2"
+#sleep 5
+#openstack vnf create --vnfd-name upf3 upf3 --vim-name chris_vim --description "upf3"
+#sleep 5
+#openstack vnf create --vnfd-name upf4 upf4 --vim-name chris_vim --description "upf4"
 
 sleep 10
 
