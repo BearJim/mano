@@ -24,7 +24,7 @@ topology_template:
         user_data_format: RAW
         user_data: |
           #!/bin/sh
-          cd /home/ubuntu/ 
+          cd /home/ubuntu/
 
           echo "export GOPATH for bash shell"
           export HOME=/home/ubuntu
@@ -32,74 +32,112 @@ topology_template:
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
           export GO111MODULE=off
-          
-          cd free5gc_training
+
+          cd free5gc
           echo "configure SMF"
-          cat > /home/ubuntu/free5gc_training/config/smfcfg.conf <<- EOM
+          cat > /home/ubuntu/free5gc/config/smfcfg.yaml <<- EOM
           info:
-            version: 1.0.0
+            version: 1.0.2
             description: SMF initial local configuration
 
           configuration:
-            smfName: SMF
-            sbi:
-              scheme: http
-              registerIPv4: 192.168.2.114 # IP used to register to NRF
-              bindingIPv4: 192.168.2.114  # IP used to bind the service
-              port: 29512
-              tls:
-                key: free5gc/support/TLS/smf.key
-                pem: free5gc/support/TLS/smf.pem
-            serviceNameList:
-              - nsmf-pdusession
-              - nsmf-event-exposure
-              - nsmf-oam
-            snssai_info:
-              - sNssai:
-                  sst: 2
-                  sd: 010204
-                dnnSmfInfoList:
-                  - dnn: internet2
-              - sNssai:
-                  sst: 1
-                  sd: 010203
-                dnnSmfInfoList:
-                  - dnn: internet
-              - sNssai:
-                  sst: 1
-                  sd: 112233
-                dnnSmfInfoList:
-                  - dnn: internet
-            pfcp:
-              addr: 192.168.2.114
-            userplane_information:
-              up_nodes:
-                gNB1:
-                  type: AN
-                  an_ip: 192.168.2.150
-                UPF:
-                  type: UPF
-                  node_id: 192.168.2.112
-
-              links:
+            smfName: SMF # the name of this SMF
+            sbi: # Service-based interface information
+              scheme: http # the protocol for sbi (http or https)
+              registerIPv4: 127.0.0.2 # IP used to register to NRF
+              bindingIPv4: 127.0.0.2  # IP used to bind the service
+              port: 8000 # Port used to bind the service
+              tls: # the local path of TLS key
+                key: free5gc/support/TLS/smf.key # SMF TLS Certificate
+                pem: free5gc/support/TLS/smf.pem # SMF TLS Private key
+            serviceNameList: # the SBI services provided by this SMF, refer to TS 29.502
+              - nsmf-pdusession # Nsmf_PDUSession service
+              - nsmf-event-exposure # Nsmf_EventExposure service
+              - nsmf-oam # OAM service
+            snssaiInfos: # the S-NSSAI (Single Network Slice Selection Assistance Information) list supported by this AMF
+              - sNssai: # S-NSSAI (Single Network Slice Selection Assistance Information)
+                  sst: 1 # Slice/Service Type (uinteger, range: 0~255)
+                  sd: 010203 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
+                dnnInfos: # DNN information list
+                  - dnn: internet # Data Network Name
+                    dns: # the IP address of DNS
+                      ipv4: 8.8.8.8
+              - sNssai: # S-NSSAI (Single Network Slice Selection Assistance Information)
+                  sst: 1 # Slice/Service Type (uinteger, range: 0~255)
+                  sd: 112233 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
+                dnnInfos: # DNN information list
+                  - dnn: internet # Data Network Name
+                    dns: # the IP address of DNS
+                      ipv4: 8.8.8.8
+            plmnList: # the list of PLMN IDs that this SMF belongs to (optional, remove this key when unnecessary)
+              - mcc: "208" # Mobile Country Code (3 digits string, digit: 0~9)
+                mnc: "93" # Mobile Network Code (2 or 3 digits string, digit: 0~9)
+            pfcp: # the IP address of N4 interface on this SMF (PFCP)
+              addr: 127.0.0.1
+            userplane_information: # list of userplane information
+              up_nodes: # information of userplane node (AN or UPF)
+                gNB1: # the name of the node
+                  type: AN # the type of the node (AN or UPF)
+                UPF:  # the name of the node
+                  type: UPF # the type of the node (AN or UPF)
+                  node_id: 127.0.0.8 # the IP/FQDN of N4 interface on this UPF (PFCP)
+                  sNssaiUpfInfos: # S-NSSAI information list for this UPF
+                    - sNssai: # S-NSSAI (Single Network Slice Selection Assistance Information)
+                        sst: 1 # Slice/Service Type (uinteger, range: 0~255)
+                        sd: 010203 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
+                      dnnUpfInfoList: # DNN information list for this S-NSSAI
+                        - dnn: internet
+                          pools:
+                            - cidr: 60.60.0.0/16
+                    - sNssai: # S-NSSAI (Single Network Slice Selection Assistance Information)
+                        sst: 1 # Slice/Service Type (uinteger, range: 0~255)
+                        sd: 112233 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
+                      dnnUpfInfoList: # DNN information list for this S-NSSAI
+                        - dnn: internet
+                          pools:
+                            - cidr: 60.61.0.0/16
+                  interfaces: # Interface list for this UPF
+                    - interfaceType: N3 # the type of the interface (N3 or N9)
+                      endpoints: # the IP address of this N3/N9 interface on this UPF
+                        - 127.0.0.8
+                      networkInstance: internet # Data Network Name (DNN)
+              links: # the topology graph of userplane, A and B represent the two nodes of each link
                 - A: gNB1
                   B: UPF
-            ue_subnet: 60.60.0.0/16
-            dnn:
-              internet:
-                dns:
-                  ipv4: 8.8.8.8
-                  ipv6: 2001:4860:4860::8888
-              internet2:
-                dns:
-                  ipv4: 8.8.4.4
-                  ipv6: 2001:4860:4860::8844
-            nrfUri: http://192.168.2.101:29510
+            nrfUri: http://127.0.0.10:8000 # a valid URI of NRF
+            locality: area1 # Name of the location where a set of AMF, SMF and UPFs are located
+
+          # the kind of log output
+            # debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic
+            # ReportCaller: enable the caller report or not, value: true or false
+          logger:
+            SMF:
+              debugLevel: info
+              ReportCaller: false
+            NAS:
+              debugLevel: info
+              ReportCaller: false
+            NGAP:
+              debugLevel: info
+              ReportCaller: false
+            Aper:
+              debugLevel: info
+              ReportCaller: false
+            PathUtil:
+              debugLevel: info
+              ReportCaller: false
+            OpenApi:
+              debugLevel: info
+              ReportCaller: false
+            PFCP:
+              debugLevel: info
+              ReportCaller: false
+
           EOM
-          
+
           #echo "initialize SMF"
           #go build -o bin/smf -x src/smf/smf.go
-          
+
           #echo "run SMF"
           #sudo ./bin/smf
     CP1:

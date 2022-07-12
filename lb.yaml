@@ -1,7 +1,7 @@
 tosca_definitions_version: tosca_simple_profile_for_nfv_1_0_0
 description: description
 node_types:
-  tosca.nodes.nfv.VNF2:
+  tosca.nodes.nfv.VNF14:
     requirements:
     - virtualLink1:
         type: tosca.nodes.nfv.VL
@@ -10,12 +10,12 @@ metadata:
   template_name: free5GCSetup
 topology_template:
   substitution_mappings:
-    node_type: tosca.nodes.nfv.VNF2
+    node_type: tosca.nodes.nfv.VNF14
   node_templates:
     VDU1:
       type: tosca.nodes.nfv.VDU.Tacker
       properties:
-        name: free5gc-amf0-VNF
+        name: free5gc-lb-VNF
         image: new-control
         flavor: free5gc
         availability_zone: nova
@@ -33,48 +33,44 @@ topology_template:
           export GO111MODULE=off
 
           cd free5gc
-          echo "configure AMF0"
-          cat > /home/ubuntu/free5gc/config/amfcfg.yaml <<- EOM
+          echo "configure LB"
+          cat > /home/ubuntu/free5gc/config/lbcfg.yaml <<- EOM
           info:
-            version: 1.0.2
-            description: AMF initial local configuration
+            version: 1.0.0
+            description: LB initial local configuration
 
           configuration:
-            amfName: AMF # the name of this AMF
-            ngapIpList:  # the IP list of N2 interfaces on this AMF
-              - 127.0.0.19
+            lbName: LB # the name of this LB
+            ngapIpList:  # the IP list of N2 interfaces on this LB
+              - 127.0.0.21
             sbi: # Service-based interface information
               scheme: http # the protocol for sbi (http or https)
-              registerIPv4: 127.0.0.19 # IP used to register to NRF
-              bindingIPv4: 127.0.0.19  # IP used to bind the service
+              registerIPv4: 127.0.0.21 # IP used to register to NRF
+              bindingIPv4: 127.0.0.21  # IP used to bind the service
               port: 8000 # port used to bind the service
-            serviceNameList: # the SBI services provided by this AMF, refer to TS 29.518
-              - namf-comm # Namf_Communication service
-              - namf-evts # Namf_EventExposure service
-              - namf-mt   # Namf_MT service
-              - namf-loc  # Namf_Location service
-              - namf-oam  # OAM service
-            servedGuamiList: # Guami (Globally Unique AMF ID) list supported by this AMF
-              # <GUAMI> = <MCC><MNC><AMF ID>
+            serviceNameList: # the SBI services provided by this LB, refer to TS 29.518
+              - nlb-comm # Namf_Communication service
+            servedGuamiList: # Guami (Globally Unique LB ID) list supported by this LB
+              # <GUAMI> = <MCC><MNC><LB ID>
               - plmnId: # Public Land Mobile Network ID, <PLMN ID> = <MCC><MNC>
                   mcc: 208 # Mobile Country Code (3 digits string, digit: 0~9)
                   mnc: 93 # Mobile Network Code (2 or 3 digits string, digit: 0~9)
-                amfId: cafe00 # AMF identifier (3 bytes hex string, range: 000000~FFFFFF)
-            supportTaiList:  # the TAI (Tracking Area Identifier) list supported by this AMF
+                amfId: cafe00 # LB identifier (3 bytes hex string, range: 000000~FFFFFF)
+            supportTaiList:  # the TAI (Tracking Area Identifier) list supported by this LB
               - plmnId: # Public Land Mobile Network ID, <PLMN ID> = <MCC><MNC>
                   mcc: 208 # Mobile Country Code (3 digits string, digit: 0~9)
                   mnc: 93 # Mobile Network Code (2 or 3 digits string, digit: 0~9)
                 tac: 1 # Tracking Area Code (uinteger, range: 0~16777215)
-            plmnSupportList: # the PLMNs (Public land mobile network) list supported by this AMF
+            plmnSupportList: # the PLMNs (Public land mobile network) list supported by this LB
               - plmnId: # Public Land Mobile Network ID, <PLMN ID> = <MCC><MNC>
                   mcc: 208 # Mobile Country Code (3 digits string, digit: 0~9)
                   mnc: 93 # Mobile Network Code (2 or 3 digits string, digit: 0~9)
-                snssaiList: # the S-NSSAI (Single Network Slice Selection Assistance Information) list supported by this AMF
+                snssaiList: # the S-NSSAI (Single Network Slice Selection Assistance Information) list supported by this LB
                   - sst: 1 # Slice/Service Type (uinteger, range: 0~255)
                     sd: 010203 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
                   - sst: 1 # Slice/Service Type (uinteger, range: 0~255)
                     sd: 112233 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
-            supportDnnList:  # the DNN (Data Network Name) list supported by this AMF
+            supportDnnList:  # the DNN (Data Network Name) list supported by this LB
               - internet
             nrfUri: http://127.0.0.10:8000 # a valid URI of NRF
             security:  # NAS security parameters
@@ -87,7 +83,7 @@ topology_template:
             networkName:  # the name of this core network
               full: free5GC
               short: free
-            locality: area1 # Name of the location where a set of AMF, SMF and UPFs are located
+            locality: area1 # Name of the location where a set of LB, SMF and UPFs are located
             networkFeatureSupport5GS: # 5gs Network Feature Support IE, refer to TS 24.501
               enable: true # append this IE in Registration accept or not
               imsVoPS: 0 # IMS voice over PS session indicator (uinteger, range: 0~1)
@@ -125,17 +121,13 @@ topology_template:
               enable: true     # true or false
               expireTime: 6s   # default is 6 seconds
               maxRetryTimes: 4 # the max number of retransmission
-            timerToMdaf:
-              enable: true     # true or false
-              expireTime: 3s   # default is 10 seconds
-              maxRetryTimes: 100 # the max number of retransmission
 
           # the kind of log output
             # debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic
             # ReportCaller: enable the caller report or not, value: true or false
           logger:
-            AMF:
-              debugLevel: info
+            LB:
+              debugLevel: debug
               ReportCaller: false
             NAS:
               debugLevel: info
@@ -144,7 +136,7 @@ topology_template:
               debugLevel: info
               ReportCaller: false
             NGAP:
-              debugLevel: info
+              debugLevel: debug
               ReportCaller: false
             Aper:
               debugLevel: info
@@ -158,15 +150,15 @@ topology_template:
 
           EOM
 
-          #echo "initialize AMF"
-          #go build -o bin/amf -x src/amf/amf.go
+          #echo "initialize LB"
+          #go build -o bin/lb -x src/lb/lb.go
 
-          #echo "run AMF"
-          #sudo ./bin/amf
+          #echo "run LB"
+          #sudo ./bin/lb
     CP1:
       type: tosca.nodes.nfv.CP.Tacker
       properties:
-        ip_address: 192.168.2.102
+        ip_address: 192.168.2.114
         management: true
       requirements:
       - virtualLink:
@@ -182,7 +174,7 @@ topology_template:
       type: tosca.nodes.network.FloatingIP
       properties:
         floating_network: public
-        floating_ip_address: 172.24.4.102
+        floating_ip_address: 172.24.4.114
       requirements:
       - link:
           node: CP1

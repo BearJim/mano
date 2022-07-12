@@ -31,38 +31,56 @@ topology_template:
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
           export GO111MODULE=off
-          
-          cd free5gc_training
+
+          cd free5gc
           echo "configure PCF"
-          cat > /home/ubuntu/free5gc_training/config/pcfcfg.conf <<- EOM
+          cat > /home/ubuntu/free5gc/config/pcfcfg.yaml <<- EOM
           info:
             version: 1.0.0
             description: PCF initial local configuration
 
           configuration:
-            pcfName: PCF
-            sbi:
-              scheme: http
-              registerIPv4: 192.168.2.105 # IP used to register to NRF
-              bindingIPv4: 192.168.2.105  # IP used to bind the service
-              port: 29507
-            timeFormat: 2019-01-02 15:04:05
-            defaultBdtRefId: BdtPolicyId-
-            nrfUri: http://192.168.2.101:29510
-            serviceList:
-              - serviceName: npcf-am-policy-control
-              - serviceName: npcf-smpolicycontrol
-                suppFeat: 3fff
-              - serviceName: npcf-bdtpolicycontrol
-              - serviceName: npcf-policyauthorization
-                suppFeat: 3
-              - serviceName: npcf-eventexposure
-              - serviceName: npcf-ue-policy-control
+            pcfName: PCF # the name of this PCF
+            sbi: # Service-based interface information
+              scheme: http # the protocol for sbi (http or https)
+              registerIPv4: 127.0.0.7 # IP used to register to NRF
+              bindingIPv4: 127.0.0.7  # IP used to bind the service
+              port: 8000              # port used to bind the service
+            timeFormat: 2019-01-02 15:04:05 # time format of this PCF
+            defaultBdtRefId: BdtPolicyId-   # BDT Reference ID, indicating transfer policies of background data transfer.
+            nrfUri: http://127.0.0.10:8000  # a valid URI of NRF
+            serviceList:   # the SBI services provided by this PCF, refer to TS 29.507
+              - serviceName: npcf-am-policy-control # Npcf_AMPolicyControl service
+              - serviceName: npcf-smpolicycontrol   # Npcf_SMPolicyControl service
+                suppFeat: 3fff # the features supported by Npcf_SMPolicyControl, name defined in TS 29.512 5.8-1, value defined in TS 29.571 5.2.2
+              - serviceName: npcf-bdtpolicycontrol    # Npcf_BDTPolicyControl service
+              - serviceName: npcf-policyauthorization # Npcf_PolicyAuthorization service
+                suppFeat: 3    # the features supported by Npcf_PolicyAuthorization, name defined in TS 29.514 5.8-1, value defined in TS 29.571 5.2.2
+              - serviceName: npcf-eventexposure       # Npcf_EventExposure service
+              - serviceName: npcf-ue-policy-control   # Npcf_UEPolicyControl service
+            mongodb:       # the mongodb connected by this PCF
+              name: free5gc                  # name of the mongodb
+              url: mongodb://localhost:27017 # a valid URL of the mongodb
+
+          # the kind of log output
+            # debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic
+            # ReportCaller: enable the caller report or not, value: true or false
+          logger:
+            PCF:
+              debugLevel: info
+              ReportCaller: false
+            PathUtil:
+              debugLevel: info
+              ReportCaller: false
+            OpenApi:
+              debugLevel: info
+              ReportCaller: false
+
           EOM
-          
+
           #echo "initialize PCF"
           #go build -o bin/pcf -x src/pcf/pcf.go
-          
+
           #echo "run PCF"
           #sudo ./bin/pcf
     CP1:
